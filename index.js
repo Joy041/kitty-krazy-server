@@ -43,6 +43,11 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/totalProductNumber', async(req, res) => {
+            const result = await toyDatabase.estimatedDocumentCount();
+            res.send({totalProductNumber : result})
+        })
+
         app.post('/toys', async (req, res) => {
             const toy = req.body;
             console.log('new user', toy)
