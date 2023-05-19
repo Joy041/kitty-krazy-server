@@ -28,13 +28,19 @@ async function run() {
         client.connect();
 
         const toyDatabase = client.db('toyDB').collection('toys')
+        const myToyDatabase = client.db('toyDB').collection('myToys')
 
 
         app.get('/products', async (req, res) => {
             const page = parseInt(req.query.currentPage) || 0;
-            const limit = parseInt(req.query.productLimit) || 10;
+            const limit = parseInt(req.query.productLimit) || 20;
             const skip = page * limit;
             const result = await toyDatabase.find().skip(skip).limit(limit).toArray()
+            res.send(result)
+        })
+
+        app.get('/allProducts', async(req, res) => {
+            const result = await toyDatabase.find().toArray()
             res.send(result)
         })
 
@@ -56,6 +62,14 @@ async function run() {
             const result = await toyDatabase.insertOne(toy)
             res.send(result)
         })
+
+        app.post('/myToys', async (req, res) => {
+            const myToy = req.body;
+            console.log('new user', myToy)
+            const result = await myToyDatabase.insertOne(myToy)
+            res.send(result)
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
