@@ -31,8 +31,10 @@ async function run() {
 
 
         app.get('/products', async (req, res) => {
-            const product = toyDatabase.find()
-            const result = await product.toArray()
+            const page = parseInt(req.query.currentPage) || 0;
+            const limit = parseInt(req.query.productLimit) || 10;
+            const skip = page * limit;
+            const result = await toyDatabase.find().skip(skip).limit(limit).toArray()
             res.send(result)
         })
 
@@ -43,9 +45,9 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/totalProductNumber', async(req, res) => {
+        app.get('/totalProductNumber', async (req, res) => {
             const result = await toyDatabase.estimatedDocumentCount();
-            res.send({totalProductNumber : result})
+            res.send({ totalProductNumber: result })
         })
 
         app.post('/toys', async (req, res) => {
