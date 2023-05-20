@@ -23,7 +23,20 @@ const client = new MongoClient(uri, {
     }
 });
 
-
+const verifyUser = (req, res, next) => {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    const token = authorization.split(' ')[1]
+    jwt.verify(token, process.env.KITTY_SECRET_TOKEN, (error, decoded) => {
+        if (error) {
+            return res.status(403).send({ error: true, message: 'unauthorized access' })
+        }
+        req.decoded = decoded
+        next()
+    });
+}
 
 async function run() {
     try {
@@ -33,7 +46,13 @@ async function run() {
         const toyDatabase = client.db('toyDB').collection('toys')
         // const myToyDatabase = client.db('toyDB').collection('myToys')
 
-
+        // JWT
+        app.post('/tokens', (req, res) => {
+            const user = req.body;
+            console.log(user)
+            const token = jwt.sign(user, process.env.KITTY_SECRET_TOKEN, { expiresIn: '10000h' });
+            res.send({ token })
+        })
 
         // PRODUCT
         app.get('/products', async (req, res) => {
@@ -61,7 +80,21 @@ async function run() {
             res.send({ totalProductNumber: result })
         })
 
-
+        app.get('/myToy', verifyUser, async (req, res) => {
+            const decoded = req.decoded;
+            console.log(decoded.email, req.email)
+        
+            if(decoded.email !== req.query.email){
+                return res.status(403).send({error: 1, message: 'forbidden access'})
+            }
+        
+            let query = []
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await toyDatabase.find(query).sort({price:1}).toArray();
+            res.send(result)
+        })
 
         app.post('/products', async (req, res) => {
             const toy = req.body;
@@ -82,7 +115,7 @@ async function run() {
                     quantity: toy.quantity
                 },
             };
-        
+
             const result = await toyDatabase.updateOne(filter, toyUpdate, options)
             res.send(result)
         })
