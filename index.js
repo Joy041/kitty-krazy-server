@@ -83,16 +83,16 @@ async function run() {
         app.get('/myToy', verifyUser, async (req, res) => {
             const decoded = req.decoded;
             console.log(decoded.email, req.email)
-        
-            if(decoded.email !== req.query.email){
-                return res.status(403).send({error: 1, message: 'forbidden access'})
+
+            if (decoded.email !== req.query.email) {
+                return res.status(403).send({ error: 1, message: 'forbidden access' })
             }
-        
+
             let query = []
             if (req.query?.email) {
                 query = { email: req.query.email }
             }
-            const result = await toyDatabase.find(query).sort({price:1}).toArray();
+            const result = await toyDatabase.find(query).sort({ price: 1 }).toArray();
             res.send(result)
         })
 
