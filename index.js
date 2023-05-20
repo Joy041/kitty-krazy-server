@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -22,15 +23,19 @@ const client = new MongoClient(uri, {
     }
 });
 
+
+
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         client.connect();
 
         const toyDatabase = client.db('toyDB').collection('toys')
-        const myToyDatabase = client.db('toyDB').collection('myToys')
+        // const myToyDatabase = client.db('toyDB').collection('myToys')
 
 
+
+        // PRODUCT
         app.get('/products', async (req, res) => {
             const page = parseInt(req.query.currentPage) || 0;
             const limit = parseInt(req.query.productLimit) || 20;
@@ -39,7 +44,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/allProducts', async(req, res) => {
+        app.get('/allProducts', async (req, res) => {
             const result = await toyDatabase.find().toArray()
             res.send(result)
         })
@@ -56,20 +61,21 @@ async function run() {
             res.send({ totalProductNumber: result })
         })
 
-        app.post('/toys', async (req, res) => {
+
+
+        app.post('/products', async (req, res) => {
             const toy = req.body;
             console.log('new user', toy)
             const result = await toyDatabase.insertOne(toy)
             res.send(result)
         })
 
-        app.post('/myToys', async (req, res) => {
-            const myToy = req.body;
-            console.log('new user', myToy)
-            const result = await myToyDatabase.insertOne(myToy)
+        app.delete('/allProducts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await toyDatabase.deleteOne(query)
             res.send(result)
         })
-
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
