@@ -70,6 +70,23 @@ async function run() {
             res.send(result)
         })
 
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const toy = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const toyUpdate = {
+                $set: {
+                    price: toy.price,
+                    details: toy.details,
+                    quantity: toy.quantity
+                },
+            };
+        
+            const result = await toyDatabase.updateOne(filter, toyUpdate, options)
+            res.send(result)
+        })
+
         app.delete('/allProducts/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
